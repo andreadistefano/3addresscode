@@ -93,6 +93,11 @@
                             return DIVIDE;
                         }
 
+"^"                     {
+                            yylval.chr = yytext[0];
+                            return POWER;
+                        }
+
 "("                     {
                             yylval.chr = yytext[0];
                             return LEFT;

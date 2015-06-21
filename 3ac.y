@@ -2,6 +2,7 @@
     #include <stdio.h>
     #include <ctype.h>
     #include <string.h>
+    #include <math.h>
     #include "lex.yy.c"
 
     int nextstat = 100;
@@ -37,6 +38,14 @@
         return e.type != NULL && strcmp(e.type, "void") == 0;
     }
 
+    int intpow (int a, int b) {
+        int r = 1;
+        while (b > 0) {
+            r *= a;
+            b--;
+        }
+        return r;
+    }
 
     void eval (struct val_type *e, struct val_type e1, char op, struct val_type e2) {
         if ( (is_real(e1) && is_real(e2)) || (is_int(e1) && is_real(e2)) || (is_real (e1) && is_int (e2)) ) {
@@ -61,11 +70,14 @@
                         dividebyzero = 1;
                     }
                     break;
+                case '^':
+                    e->realval = pow(e1.realval, e2.realval);
+                    break;
                 default:
                     break;
             }
         }
-        else if ( is_int(e1) && is_int(e2) ) {
+        else if (is_int(e1) && is_int(e2)) {
             e->type = strdup("integer");
             switch (op) {
                 case '+':
@@ -84,6 +96,9 @@
                     else {
                         dividebyzero = 1;
                     }
+                    break;
+                case '^':
+                    e->intval = intpow(e1.intval, e2.intval);
                     break;
                 default:
                     break;
@@ -177,6 +192,7 @@
 %nonassoc GREATER GREATEQ LESSER LESSEQ EQUAL NOTEQUAL
 %left PLUS MINUS
 %left TIMES DIVIDE
+%right POWER
 %left NEG NOT
 
 %start s
@@ -236,8 +252,22 @@ e : e PLUS e            {
                                 newtemp(s, count);
                                 temp.str = strdup(s);
                                 temp.type = strdup("real");
-                                if (is_int($1)) printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
-                                else printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                if (is_int($1)) {
+                                    if ($1.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $1.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
+                                    }
+                                }
+                                else {
+                                    if ($3.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $3.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                    }
+                                }
                             }
                             newtemp(s, count);
                             $$.str = strdup(s);
@@ -262,8 +292,22 @@ e : e MINUS e           {
                                 newtemp(s, count);
                                 temp.str = strdup(s);
                                 temp.type = strdup("real");
-                                if (is_int($1)) printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
-                                else printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                if (is_int($1)) {
+                                    if ($1.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $1.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
+                                    }
+                                }
+                                else {
+                                    if ($3.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $3.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                    }
+                                }
                             }
                             newtemp(s, count);
                             $$.str = strdup(s);
@@ -288,8 +332,22 @@ e : e TIMES e           {
                                 newtemp(s, count);
                                 temp.str = strdup(s);
                                 temp.type = strdup("real");
-                                if (is_int($1)) printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
-                                else printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                if (is_int($1)) {
+                                    if ($1.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $1.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
+                                    }
+                                }
+                                else {
+                                    if ($3.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $3.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                    }
+                                }
                             }
                             newtemp(s, count);
                             $$.str = strdup(s);
@@ -314,8 +372,62 @@ e : e DIVIDE e          {
                                 newtemp(s, count);
                                 temp.str = strdup(s);
                                 temp.type = strdup("real");
-                                if (is_int($1)) printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
-                                else printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                if (is_int($1)) {
+                                    if ($1.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $1.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
+                                    }
+                                }
+                                else {
+                                    if ($3.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $3.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                    }
+                                }
+                            }
+                            newtemp(s, count);
+                            $$.str = strdup(s);
+                            if (is_real($1) && is_real($3)) {
+                                printf("%d\t%s := %s real%c %s\n", nextstat++, $$.str, $1.str, $2, $3.str);
+                            }
+                            else if (is_real(temp)) {
+                                if (is_int($1)) printf("%d\t%s := %s real%c %s\n", nextstat++, $$.str, temp.str, $2, $3.str);
+                                else printf("%d\t%s := %s real%c %s\n", nextstat++, $$.str, $1.str, $2, temp.str);
+                            }
+                            else {
+                                printf("%d\t%s := %s %c %s\n", nextstat++, $$.str, $1.str, $2, $3.str);
+                            }
+                            eval (&$$, $1, $2, $3);
+                        };
+
+e : e POWER e           {
+                            struct val_type temp;
+                            temp.str = NULL;
+                            temp.type = NULL;
+                            if ( (is_int($1) && is_real($3)) || is_real($1) && is_int($3) ) {
+                                newtemp(s, count);
+                                temp.str = strdup(s);
+                                temp.type = strdup("real");
+                                if (is_int($1)) {
+                                    if ($1.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $1.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $1.intval);
+                                    }
+                                }
+                                else {
+                                    if ($3.str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, $3.str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, $3.intval);
+                                    }
+                                }
                             }
                             newtemp(s, count);
                             $$.str = strdup(s);
@@ -349,8 +461,15 @@ e : MINUS e %prec NEG   {
 e : LEFT e RIGHT        {
                             $$.str = strdup($2.str);
                             $$.type = strdup($2.type);
-                            $$.intval = $2.intval;
-                            $$.realval = $2.realval;
+                            if (is_int($2)) {
+                                $$.intval = $2.intval;
+                            }
+                            else if (is_real($2)) {
+                                $$.realval = $2.realval;
+                            }
+                            else if (is_boolean($2)) {
+                                $$.boolval = $2.boolval;
+                            }
                         };
 
 e : ID                  {

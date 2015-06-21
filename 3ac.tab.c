@@ -72,6 +72,7 @@
     #include <stdio.h>
     #include <ctype.h>
     #include <string.h>
+    #include <math.h>
     #include "lex.yy.c"
 
     int nextstat = 100;
@@ -107,6 +108,14 @@
         return e.type != NULL && strcmp(e.type, "void") == 0;
     }
 
+    int intpow (int a, int b) {
+        int r = 1;
+        while (b > 0) {
+            r *= a;
+            b--;
+        }
+        return r;
+    }
 
     void eval (struct val_type *e, struct val_type e1, char op, struct val_type e2) {
         if ( (is_real(e1) && is_real(e2)) || (is_int(e1) && is_real(e2)) || (is_real (e1) && is_int (e2)) ) {
@@ -131,11 +140,14 @@
                         dividebyzero = 1;
                     }
                     break;
+                case '^':
+                    e->realval = pow(e1.realval, e2.realval);
+                    break;
                 default:
                     break;
             }
         }
-        else if ( is_int(e1) && is_int(e2) ) {
+        else if (is_int(e1) && is_int(e2)) {
             e->type = strdup("integer");
             switch (op) {
                 case '+':
@@ -154,6 +166,9 @@
                     else {
                         dividebyzero = 1;
                     }
+                    break;
+                case '^':
+                    e->intval = intpow(e1.intval, e2.intval);
                     break;
                 default:
                     break;
@@ -226,7 +241,7 @@
 
 
 /* Line 189 of yacc.c  */
-#line 230 "3ac.tab.c"
+#line 245 "3ac.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -286,7 +301,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 158 "3ac.y"
+#line 173 "3ac.y"
 
     struct val_type {
         char *str;
@@ -301,7 +316,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 305 "3ac.tab.c"
+#line 320 "3ac.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -313,7 +328,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 317 "3ac.tab.c"
+#line 332 "3ac.tab.c"
 
 #ifdef short
 # undef short
@@ -528,16 +543,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  15
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   133
+#define YYLAST   145
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  26
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  3
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  22
+#define YYNRULES  23
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  43
+#define YYNSTATES  45
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -585,9 +600,9 @@ static const yytype_uint8 yytranslate[] =
    YYRHS.  */
 static const yytype_uint8 yyprhs[] =
 {
-       0,     0,     3,     5,    10,    14,    18,    22,    26,    29,
-      33,    35,    37,    41,    45,    48,    52,    56,    60,    64,
-      68,    72,    74
+       0,     0,     3,     5,    10,    14,    18,    22,    26,    30,
+      33,    37,    39,    41,    45,    49,    52,    56,    60,    64,
+      68,    72,    76,    78
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
@@ -595,20 +610,20 @@ static const yytype_int8 yyrhs[] =
 {
       27,     0,    -1,    28,    -1,     4,    14,    28,    24,    -1,
       28,    17,    28,    -1,    28,    18,    28,    -1,    28,    19,
-      28,    -1,    28,    20,    28,    -1,    18,    28,    -1,    22,
-      28,    23,    -1,     4,    -1,     3,    -1,    28,    11,    28,
-      -1,    28,    12,    28,    -1,    13,    28,    -1,    28,     5,
-      28,    -1,    28,     6,    28,    -1,    28,     7,    28,    -1,
-      28,     8,    28,    -1,    28,     9,    28,    -1,    28,    10,
-      28,    -1,    15,    -1,    16,    -1
+      28,    -1,    28,    20,    28,    -1,    28,    21,    28,    -1,
+      18,    28,    -1,    22,    28,    23,    -1,     4,    -1,     3,
+      -1,    28,    11,    28,    -1,    28,    12,    28,    -1,    13,
+      28,    -1,    28,     5,    28,    -1,    28,     6,    28,    -1,
+      28,     7,    28,    -1,    28,     8,    28,    -1,    28,     9,
+      28,    -1,    28,    10,    28,    -1,    15,    -1,    16,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   186,   186,   208,   231,   257,   283,   309,   335,   349,
-     356,   361,   375,   382,   389,   403,   415,   427,   439,   451,
-     463,   475,   483
+       0,   202,   202,   224,   247,   287,   327,   367,   407,   447,
+     461,   475,   480,   494,   501,   508,   522,   534,   546,   558,
+     570,   582,   594,   602
 };
 #endif
 
@@ -640,15 +655,15 @@ static const yytype_uint8 yyr1[] =
 {
        0,    26,    27,    27,    28,    28,    28,    28,    28,    28,
       28,    28,    28,    28,    28,    28,    28,    28,    28,    28,
-      28,    28,    28
+      28,    28,    28,    28
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     1,     4,     3,     3,     3,     3,     2,     3,
-       1,     1,     3,     3,     2,     3,     3,     3,     3,     3,
-       3,     1,     1
+       0,     2,     1,     4,     3,     3,     3,     3,     3,     2,
+       3,     1,     1,     3,     3,     2,     3,     3,     3,     3,
+       3,     3,     1,     1
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -656,11 +671,11 @@ static const yytype_uint8 yyr2[] =
    means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,    11,    10,     0,    21,    22,     0,     0,     0,     2,
-       0,    10,    14,     8,     0,     1,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     9,
-      15,    16,    17,    18,    19,    20,    12,    13,     4,     5,
-       6,     7,     3
+       0,    12,    11,     0,    22,    23,     0,     0,     0,     2,
+       0,    11,    15,     9,     0,     1,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      10,    16,    17,    18,    19,    20,    21,    13,    14,     4,
+       5,     6,     7,     8,     3
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -671,20 +686,20 @@ static const yytype_int8 yydefgoto[] =
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -19
+#define YYPACT_NINF -17
 static const yytype_int8 yypact[] =
 {
-      30,   -19,    -9,    38,   -19,   -19,    38,    38,     6,    75,
-      38,   -19,   -19,   -19,    56,   -19,    38,    38,    38,    38,
-      38,    38,    38,    38,    38,    38,    38,    38,    20,   -19,
-     107,   107,   107,   107,   107,   107,   113,    91,   -18,   -18,
-     -19,   -19,   -19
+      31,   -17,   -13,    47,   -17,   -17,    47,    47,     2,    84,
+      47,   -17,   -17,   -17,    65,   -17,    47,    47,    47,    47,
+      47,    47,    47,    47,    47,    47,    47,    47,    47,    21,
+     -17,   118,   118,   118,   118,   118,   118,   124,   101,   -11,
+     -11,   -16,   -16,   -16,   -17
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -19,   -19,    -3
+     -17,   -17,    -3
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -694,38 +709,40 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_int8 yytable[] =
 {
-      12,    26,    27,    13,    14,    10,    15,    28,     0,     0,
-       0,     0,     0,    30,    31,    32,    33,    34,    35,    36,
-      37,    38,    39,    40,    41,    16,    17,    18,    19,    20,
-      21,    22,    23,     1,     2,     0,     0,    24,    25,    26,
-      27,     1,    11,     3,    42,     4,     5,     0,     6,     0,
-       0,     3,     7,     4,     5,     0,     6,     0,     0,     0,
-       7,    16,    17,    18,    19,    20,    21,    22,    23,     0,
-       0,     0,     0,    24,    25,    26,    27,     0,     0,    29,
+      12,    10,    15,    13,    14,    28,     0,    29,    26,    27,
+      28,     0,     0,    31,    32,    33,    34,    35,    36,    37,
+      38,    39,    40,    41,    42,    43,    16,    17,    18,    19,
+      20,    21,    22,    23,     1,     2,     0,     0,    24,    25,
+      26,    27,    28,     0,     3,    44,     4,     5,     0,     6,
+       1,    11,     0,     7,     0,     0,     0,     0,     0,     0,
+       3,     0,     4,     5,     0,     6,     0,     0,     0,     7,
       16,    17,    18,    19,    20,    21,    22,    23,     0,     0,
-       0,     0,    24,    25,    26,    27,    16,    17,    18,    19,
+       0,     0,    24,    25,    26,    27,    28,     0,    30,    16,
+      17,    18,    19,    20,    21,    22,    23,     0,     0,     0,
+       0,    24,    25,    26,    27,    28,    16,    17,    18,    19,
       20,    21,    22,     0,     0,     0,     0,     0,    24,    25,
-      26,    27,    -1,    -1,    -1,    -1,    -1,    -1,    16,    17,
-      18,    19,    20,    21,    24,    25,    26,    27,     0,     0,
-      24,    25,    26,    27
+      26,    27,    28,    -1,    -1,    -1,    -1,    -1,    -1,    16,
+      17,    18,    19,    20,    21,    24,    25,    26,    27,    28,
+       0,    24,    25,    26,    27,    28
 };
 
 static const yytype_int8 yycheck[] =
 {
-       3,    19,    20,     6,     7,    14,     0,    10,    -1,    -1,
-      -1,    -1,    -1,    16,    17,    18,    19,    20,    21,    22,
-      23,    24,    25,    26,    27,     5,     6,     7,     8,     9,
-      10,    11,    12,     3,     4,    -1,    -1,    17,    18,    19,
-      20,     3,     4,    13,    24,    15,    16,    -1,    18,    -1,
-      -1,    13,    22,    15,    16,    -1,    18,    -1,    -1,    -1,
-      22,     5,     6,     7,     8,     9,    10,    11,    12,    -1,
-      -1,    -1,    -1,    17,    18,    19,    20,    -1,    -1,    23,
+       3,    14,     0,     6,     7,    21,    -1,    10,    19,    20,
+      21,    -1,    -1,    16,    17,    18,    19,    20,    21,    22,
+      23,    24,    25,    26,    27,    28,     5,     6,     7,     8,
+       9,    10,    11,    12,     3,     4,    -1,    -1,    17,    18,
+      19,    20,    21,    -1,    13,    24,    15,    16,    -1,    18,
+       3,     4,    -1,    22,    -1,    -1,    -1,    -1,    -1,    -1,
+      13,    -1,    15,    16,    -1,    18,    -1,    -1,    -1,    22,
        5,     6,     7,     8,     9,    10,    11,    12,    -1,    -1,
-      -1,    -1,    17,    18,    19,    20,     5,     6,     7,     8,
+      -1,    -1,    17,    18,    19,    20,    21,    -1,    23,     5,
+       6,     7,     8,     9,    10,    11,    12,    -1,    -1,    -1,
+      -1,    17,    18,    19,    20,    21,     5,     6,     7,     8,
        9,    10,    11,    -1,    -1,    -1,    -1,    -1,    17,    18,
-      19,    20,     5,     6,     7,     8,     9,    10,     5,     6,
-       7,     8,     9,    10,    17,    18,    19,    20,    -1,    -1,
-      17,    18,    19,    20
+      19,    20,    21,     5,     6,     7,     8,     9,    10,     5,
+       6,     7,     8,     9,    10,    17,    18,    19,    20,    21,
+      -1,    17,    18,    19,    20,    21
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -734,9 +751,9 @@ static const yytype_uint8 yystos[] =
 {
        0,     3,     4,    13,    15,    16,    18,    22,    27,    28,
       14,     4,    28,    28,    28,     0,     5,     6,     7,     8,
-       9,    10,    11,    12,    17,    18,    19,    20,    28,    23,
-      28,    28,    28,    28,    28,    28,    28,    28,    28,    28,
-      28,    28,    24
+       9,    10,    11,    12,    17,    18,    19,    20,    21,    28,
+      23,    28,    28,    28,    28,    28,    28,    28,    28,    28,
+      28,    28,    28,    28,    24
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1559,7 +1576,7 @@ yyreduce:
         case 2:
 
 /* Line 1464 of yacc.c  */
-#line 186 "3ac.y"
+#line 202 "3ac.y"
     {
                             if (dividebyzero) {
                                 printf("\nRESULT: ERROR. CANNOT DIVIDE BY 0!");
@@ -1586,7 +1603,7 @@ yyreduce:
   case 3:
 
 /* Line 1464 of yacc.c  */
-#line 208 "3ac.y"
+#line 224 "3ac.y"
     {
                             printf("%d\t%s := %s\n", nextstat++, (yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].val_type).str);
                             if (dividebyzero) {
@@ -1614,7 +1631,7 @@ yyreduce:
   case 4:
 
 /* Line 1464 of yacc.c  */
-#line 231 "3ac.y"
+#line 247 "3ac.y"
     {
                             struct val_type temp;
                             temp.str = NULL;
@@ -1623,8 +1640,22 @@ yyreduce:
                                 newtemp(s, count);
                                 temp.str = strdup(s);
                                 temp.type = strdup("real");
-                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
-                                else printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                if (is_int((yyvsp[(1) - (3)].val_type))) {
+                                    if ((yyvsp[(1) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
+                                    }
+                                }
+                                else {
+                                    if ((yyvsp[(3) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                    }
+                                }
                             }
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1645,7 +1676,7 @@ yyreduce:
   case 5:
 
 /* Line 1464 of yacc.c  */
-#line 257 "3ac.y"
+#line 287 "3ac.y"
     {
                             struct val_type temp;
                             temp.str = NULL;
@@ -1654,8 +1685,22 @@ yyreduce:
                                 newtemp(s, count);
                                 temp.str = strdup(s);
                                 temp.type = strdup("real");
-                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
-                                else printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                if (is_int((yyvsp[(1) - (3)].val_type))) {
+                                    if ((yyvsp[(1) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
+                                    }
+                                }
+                                else {
+                                    if ((yyvsp[(3) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                    }
+                                }
                             }
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1676,7 +1721,7 @@ yyreduce:
   case 6:
 
 /* Line 1464 of yacc.c  */
-#line 283 "3ac.y"
+#line 327 "3ac.y"
     {
                             struct val_type temp;
                             temp.str = NULL;
@@ -1685,8 +1730,22 @@ yyreduce:
                                 newtemp(s, count);
                                 temp.str = strdup(s);
                                 temp.type = strdup("real");
-                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
-                                else printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                if (is_int((yyvsp[(1) - (3)].val_type))) {
+                                    if ((yyvsp[(1) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
+                                    }
+                                }
+                                else {
+                                    if ((yyvsp[(3) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                    }
+                                }
                             }
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1707,7 +1766,7 @@ yyreduce:
   case 7:
 
 /* Line 1464 of yacc.c  */
-#line 309 "3ac.y"
+#line 367 "3ac.y"
     {
                             struct val_type temp;
                             temp.str = NULL;
@@ -1716,8 +1775,22 @@ yyreduce:
                                 newtemp(s, count);
                                 temp.str = strdup(s);
                                 temp.type = strdup("real");
-                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
-                                else printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                if (is_int((yyvsp[(1) - (3)].val_type))) {
+                                    if ((yyvsp[(1) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
+                                    }
+                                }
+                                else {
+                                    if ((yyvsp[(3) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                    }
+                                }
                             }
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1738,7 +1811,52 @@ yyreduce:
   case 8:
 
 /* Line 1464 of yacc.c  */
-#line 335 "3ac.y"
+#line 407 "3ac.y"
+    {
+                            struct val_type temp;
+                            temp.str = NULL;
+                            temp.type = NULL;
+                            if ( (is_int((yyvsp[(1) - (3)].val_type)) && is_real((yyvsp[(3) - (3)].val_type))) || is_real((yyvsp[(1) - (3)].val_type)) && is_int((yyvsp[(3) - (3)].val_type)) ) {
+                                newtemp(s, count);
+                                temp.str = strdup(s);
+                                temp.type = strdup("real");
+                                if (is_int((yyvsp[(1) - (3)].val_type))) {
+                                    if ((yyvsp[(1) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).intval);
+                                    }
+                                }
+                                else {
+                                    if ((yyvsp[(3) - (3)].val_type).str[0] = 't') {
+                                        printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                                    }
+                                    else {
+                                        printf("%d\t%s := int_to_real %d\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).intval);
+                                    }
+                                }
+                            }
+                            newtemp(s, count);
+                            (yyval.val_type).str = strdup(s);
+                            if (is_real((yyvsp[(1) - (3)].val_type)) && is_real((yyvsp[(3) - (3)].val_type))) {
+                                printf("%d\t%s := %s real%c %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type).str);
+                            }
+                            else if (is_real(temp)) {
+                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := %s real%c %s\n", nextstat++, (yyval.val_type).str, temp.str, (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type).str);
+                                else printf("%d\t%s := %s real%c %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].chr), temp.str);
+                            }
+                            else {
+                                printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type).str);
+                            }
+                            eval (&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type));
+                        ;}
+    break;
+
+  case 9:
+
+/* Line 1464 of yacc.c  */
+#line 447 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1754,32 +1872,39 @@ yyreduce:
                         ;}
     break;
 
-  case 9:
-
-/* Line 1464 of yacc.c  */
-#line 349 "3ac.y"
-    {
-                            (yyval.val_type).str = strdup((yyvsp[(2) - (3)].val_type).str);
-                            (yyval.val_type).type = strdup((yyvsp[(2) - (3)].val_type).type);
-                            (yyval.val_type).intval = (yyvsp[(2) - (3)].val_type).intval;
-                            (yyval.val_type).realval = (yyvsp[(2) - (3)].val_type).realval;
-                        ;}
-    break;
-
   case 10:
 
 /* Line 1464 of yacc.c  */
-#line 356 "3ac.y"
+#line 461 "3ac.y"
     {
-                            (yyval.val_type).str = strdup((yyvsp[(1) - (1)].str));
-                            (yyval.val_type).type = strdup("void");
+                            (yyval.val_type).str = strdup((yyvsp[(2) - (3)].val_type).str);
+                            (yyval.val_type).type = strdup((yyvsp[(2) - (3)].val_type).type);
+                            if (is_int((yyvsp[(2) - (3)].val_type))) {
+                                (yyval.val_type).intval = (yyvsp[(2) - (3)].val_type).intval;
+                            }
+                            else if (is_real((yyvsp[(2) - (3)].val_type))) {
+                                (yyval.val_type).realval = (yyvsp[(2) - (3)].val_type).realval;
+                            }
+                            else if (is_boolean((yyvsp[(2) - (3)].val_type))) {
+                                (yyval.val_type).boolval = (yyvsp[(2) - (3)].val_type).boolval;
+                            }
                         ;}
     break;
 
   case 11:
 
 /* Line 1464 of yacc.c  */
-#line 361 "3ac.y"
+#line 475 "3ac.y"
+    {
+                            (yyval.val_type).str = strdup((yyvsp[(1) - (1)].str));
+                            (yyval.val_type).type = strdup("void");
+                        ;}
+    break;
+
+  case 12:
+
+/* Line 1464 of yacc.c  */
+#line 480 "3ac.y"
     {
                             char p[256] = "";
                             if (strcmp((yyvsp[(1) - (1)].val_type).type, "integer") == 0) {
@@ -1795,10 +1920,10 @@ yyreduce:
                         ;}
     break;
 
-  case 12:
+  case 13:
 
 /* Line 1464 of yacc.c  */
-#line 375 "3ac.y"
+#line 494 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1807,10 +1932,10 @@ yyreduce:
                         ;}
     break;
 
-  case 13:
+  case 14:
 
 /* Line 1464 of yacc.c  */
-#line 382 "3ac.y"
+#line 501 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1819,10 +1944,10 @@ yyreduce:
                         ;}
     break;
 
-  case 14:
+  case 15:
 
 /* Line 1464 of yacc.c  */
-#line 389 "3ac.y"
+#line 508 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1838,27 +1963,10 @@ yyreduce:
                         ;}
     break;
 
-  case 15:
-
-/* Line 1464 of yacc.c  */
-#line 403 "3ac.y"
-    {
-                            newtemp(s, count);
-                            (yyval.val_type).str = strdup(s);
-                            relop_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
-                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type).str, nextstat + 3);
-                            nextstat++;
-                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
-                            printf("%d\tgoto %d\n", nextstat, nextstat + 2);
-                            nextstat++;
-                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
-                        ;}
-    break;
-
   case 16:
 
 /* Line 1464 of yacc.c  */
-#line 415 "3ac.y"
+#line 522 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1875,7 +1983,7 @@ yyreduce:
   case 17:
 
 /* Line 1464 of yacc.c  */
-#line 427 "3ac.y"
+#line 534 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1892,7 +2000,7 @@ yyreduce:
   case 18:
 
 /* Line 1464 of yacc.c  */
-#line 439 "3ac.y"
+#line 546 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1909,7 +2017,7 @@ yyreduce:
   case 19:
 
 /* Line 1464 of yacc.c  */
-#line 451 "3ac.y"
+#line 558 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1926,7 +2034,7 @@ yyreduce:
   case 20:
 
 /* Line 1464 of yacc.c  */
-#line 463 "3ac.y"
+#line 570 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1943,7 +2051,24 @@ yyreduce:
   case 21:
 
 /* Line 1464 of yacc.c  */
-#line 475 "3ac.y"
+#line 582 "3ac.y"
+    {
+                            newtemp(s, count);
+                            (yyval.val_type).str = strdup(s);
+                            relop_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type).str, nextstat + 3);
+                            nextstat++;
+                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
+                            printf("%d\tgoto %d\n", nextstat, nextstat + 2);
+                            nextstat++;
+                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
+                        ;}
+    break;
+
+  case 22:
+
+/* Line 1464 of yacc.c  */
+#line 594 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1953,10 +2078,10 @@ yyreduce:
                         ;}
     break;
 
-  case 22:
+  case 23:
 
 /* Line 1464 of yacc.c  */
-#line 483 "3ac.y"
+#line 602 "3ac.y"
     {
                             newtemp(s, count);
                             (yyval.val_type).str = strdup(s);
@@ -1969,7 +2094,7 @@ yyreduce:
 
 
 /* Line 1464 of yacc.c  */
-#line 1973 "3ac.tab.c"
+#line 2098 "3ac.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2181,7 +2306,7 @@ yyreturn:
 
 
 /* Line 1684 of yacc.c  */
-#line 491 "3ac.y"
+#line 610 "3ac.y"
 
 
 main() {
