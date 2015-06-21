@@ -71,17 +71,22 @@ typedef union YYSTYPE
 {
 
 /* Line 1685 of yacc.c  */
-#line 21 "3ac.y"
+#line 152 "3ac.y"
 
+    struct val_type {
+        char *str;
+        char *type;
+        int intval;
+        int boolval;
+        double realval;
+    } val_type;
     char *str;
     char chr;
-    int integer;
-    double real;
 
 
 
 /* Line 1685 of yacc.c  */
-#line 85 "3ac.tab.h"
+#line 90 "3ac.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

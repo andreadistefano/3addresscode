@@ -74,22 +74,153 @@
     #include <string.h>
     #include "lex.yy.c"
 
-    #define YYDEBUG 1
-
     int nextstat = 100;
     int count = 1;
     char s[5];
-    int temp1, temp2;
+    int dividebyzero;
 
     void newtemp (char *s, int i) {
         sprintf(s, "t%d", i);
         count++;
+        return;
+    }
+
+    void int_to_real (struct val_type *e) {
+        e->type = strdup("real");
+        e->realval = (double) e->intval;
+        return;
+    }
+
+    int is_int (struct val_type e) {
+        return strcmp(e.type, "integer") == 0;
+    }
+
+    int is_real (struct val_type e) {
+        return strcmp(e.type, "real") == 0;
+    }
+
+    int is_boolean (struct val_type e) {
+        return strcmp(e.type, "boolean") == 0;
+    }
+
+    int is_void (struct val_type e) {
+        return strcmp(e.type, "void") == 0;
+    }
+
+
+    void eval (struct val_type *e, struct val_type e1, char op, struct val_type e2) {
+        if ( (is_real(e1) && is_real(e2)) || (is_int(e1) && is_real(e2)) || (is_real (e1) && is_int (e2)) ) {
+            if (is_int(e1)) int_to_real(&e1);
+            else if (is_int(e2)) int_to_real(&e2);
+            e->type = strdup("real");
+            switch (op) {
+                case '+':
+                    e->realval = e1.realval + e2.realval;
+                    break;
+                case '-':
+                    e->realval = e1.realval - e2.realval;
+                    break;
+                case '*':
+                    e->realval = e1.realval * e2.realval;
+                    break;
+                case '/':
+                    if (e2.realval != 0.0) {
+                        e->realval = e1.realval / e2.realval;
+                    }
+                    else {
+                        dividebyzero = 1;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if ( is_int(e1) && is_int(e2) ) {
+            e->type = strdup("integer");
+            switch (op) {
+                case '+':
+                    e->intval = e1.intval + e2.intval;
+                    break;
+                case '-':
+                    e->intval = e1.intval - e2.intval;
+                    break;
+                case '*':
+                    e->intval = e1.intval * e2.intval;
+                    break;
+                case '/':
+                    if (e2.intval != 0) {
+                        e->intval = e1.intval / e2.intval;
+                    }
+                    else {
+                        dividebyzero = 1;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (is_void(e1) || is_void(e2)) {
+            e->type = strdup("void");
+        }
+        else {
+            e->type = strdup("type_error");
+        }
+        return;
+    }
+
+    void bool_eval (struct val_type *e, struct val_type e1, char *op, struct val_type e2) {
+        if (is_boolean(e1) && is_boolean(e2)) {
+            e->type = strdup("boolean");
+            if (strcmp(op, "AND") == 0 || strcmp(op, "&&") == 0) {
+                e->boolval = e1.boolval && e2.boolval;
+            }
+            if (strcmp(op, "OR") == 0 || strcmp(op, "||") == 0) {
+                e->boolval = e1.boolval || e2.boolval;
+            }
+        }
+        else if (is_void(e1) || is_void (e2)) {
+            e->type = strdup("boolean");
+        }
+        else {
+            e->type = strdup("type_error");
+        }
+        return;
+    }
+
+    void relop_eval (struct val_type *e, struct val_type e1, char *relop, struct val_type e2) {
+        if ( (is_real(e1) && is_real(e2)) || (is_int(e1) && is_real(e2)) || (is_real (e1) && is_int (e2)) ) {
+            if (is_int(e1)) int_to_real(&e1);
+            else if (is_int(e2)) int_to_real(&e2);
+            e->type = strdup("boolean");
+            if (strcmp(relop, "==") == 0) e->boolval = (e1.realval == e2.realval);
+            if (strcmp(relop, "!=") == 0) e->boolval = (e1.realval != e2.realval);
+            if (strcmp(relop, ">") == 0) e->boolval = (e1.realval > e2.realval);
+            if (strcmp(relop, ">=") == 0) e->boolval = (e1.realval >= e2.realval);
+            if (strcmp(relop, "<") == 0) e->boolval = (e1.realval > e2.realval);
+            if (strcmp(relop, "<=") == 0) e->boolval = (e1.realval >= e2.realval);
+        }
+        else if (is_int(e1) && is_int(e2)) {
+            e->type = strdup("boolean");
+            if (strcmp(relop, "==") == 0) e->boolval = (e1.intval == e2.intval);
+            if (strcmp(relop, "!=") == 0) e->boolval = (e1.intval != e2.intval);
+            if (strcmp(relop, ">") == 0) e->boolval = (e1.intval > e2.intval);
+            if (strcmp(relop, ">=") == 0) e->boolval = (e1.intval >= e2.intval);
+            if (strcmp(relop, "<") == 0) e->boolval = (e1.intval > e2.intval);
+            if (strcmp(relop, "<=") == 0) e->boolval = (e1.intval >= e2.intval);
+        }
+        else if (is_void(e1) || is_void(e2)) {
+            e->type = strdup("boolean");
+        }
+        else {
+            e->type = strdup("type_error");
+        }
+        return;
     }
 
 
 
 /* Line 189 of yacc.c  */
-#line 93 "3ac.tab.c"
+#line 224 "3ac.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -149,17 +280,22 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 21 "3ac.y"
+#line 152 "3ac.y"
 
+    struct val_type {
+        char *str;
+        char *type;
+        int intval;
+        int boolval;
+        double realval;
+    } val_type;
     char *str;
     char chr;
-    int integer;
-    double real;
 
 
 
 /* Line 214 of yacc.c  */
-#line 163 "3ac.tab.c"
+#line 299 "3ac.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -171,7 +307,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 175 "3ac.tab.c"
+#line 311 "3ac.tab.c"
 
 #ifdef short
 # undef short
@@ -462,11 +598,11 @@ static const yytype_int8 yyrhs[] =
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,    44,    44,    48,    53,    59,    65,    71,    77,    83,
-      87,    91,    98,   104,   110,   116,   127,   138,   149,   160,
-     171,   182,   188
+       0,   180,   180,   202,   225,   237,   249,   261,   273,   287,
+     294,   299,   313,   320,   327,   341,   353,   365,   377,   389,
+     401,   413,   421
 };
 #endif
 
@@ -1417,8 +1553,26 @@ yyreduce:
         case 2:
 
 /* Line 1464 of yacc.c  */
-#line 44 "3ac.y"
+#line 180 "3ac.y"
     {
+                            if (dividebyzero) {
+                                printf("\nRESULT: ERROR. CANNOT DIVIDE BY 0!");
+                            }
+                            else if (is_int((yyvsp[(1) - (1)].val_type))) {
+                                printf("\nRESULT: %d (%s)", (yyvsp[(1) - (1)].val_type).intval, (yyvsp[(1) - (1)].val_type).type);
+                            }
+                            else if (is_real((yyvsp[(1) - (1)].val_type))) {
+                                printf("\nRESULT: %f (%s)", (yyvsp[(1) - (1)].val_type).realval, (yyvsp[(1) - (1)].val_type).type);
+                            }
+                            else if (is_boolean((yyvsp[(1) - (1)].val_type))) {
+                                printf("\nRESULT: %d (%s)", (yyvsp[(1) - (1)].val_type).boolval, (yyvsp[(1) - (1)].val_type).type);
+                            }
+                            else if (is_void((yyvsp[(1) - (1)].val_type))) {
+                                printf("\nRESULT: %s (%s)", (yyvsp[(1) - (1)].val_type).str, (yyvsp[(1) - (1)].val_type).type);
+                            }
+                            else {
+                                printf("\nRESULT: %s (%s)", (yyvsp[(1) - (1)].val_type).str, (yyvsp[(1) - (1)].val_type).type);
+                            }
                             return 0;
                         ;}
     break;
@@ -1426,9 +1580,27 @@ yyreduce:
   case 3:
 
 /* Line 1464 of yacc.c  */
-#line 48 "3ac.y"
+#line 202 "3ac.y"
     {
-                            printf("%d\t%s := %s\n", nextstat++, (yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].str));
+                            printf("%d\t%s := %s\n", nextstat++, (yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].val_type).str);
+                            if (dividebyzero) {
+                                printf("\nRESULT: ERROR. CANNOT DIVIDE BY 0!");
+                            }
+                            else if (is_int((yyvsp[(3) - (4)].val_type))) {
+                                printf("\nRESULT: %d (%s)", (yyvsp[(3) - (4)].val_type).intval, (yyvsp[(3) - (4)].val_type).type);
+                            }
+                            else if (is_real((yyvsp[(3) - (4)].val_type))) {
+                                printf("\nRESULT: %f (%s)", (yyvsp[(3) - (4)].val_type).realval, (yyvsp[(3) - (4)].val_type).type);
+                            }
+                            else if (is_boolean((yyvsp[(3) - (4)].val_type))) {
+                                printf("\nRESULT: %d (%s)", (yyvsp[(3) - (4)].val_type).boolval, (yyvsp[(3) - (4)].val_type).type);
+                            }
+                            else if (is_void((yyvsp[(3) - (4)].val_type))) {
+                                printf("\nRESULT: %s (%s)", (yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].val_type).type);
+                            }
+                            else {
+                                printf("\nRESULT: %s (%s)", (yyvsp[(1) - (4)].str), (yyvsp[(3) - (4)].val_type).type);
+                            }
                             return 0;
                         ;}
     break;
@@ -1436,243 +1608,306 @@ yyreduce:
   case 4:
 
 /* Line 1464 of yacc.c  */
-#line 53 "3ac.y"
+#line 225 "3ac.y"
     {
+                            eval (&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type));
+                            if ( (is_int((yyvsp[(1) - (3)].val_type)) && is_real((yyvsp[(3) - (3)].val_type))) || is_real((yyvsp[(1) - (3)].val_type)) && is_int((yyvsp[(3) - (3)].val_type)) ) {
+                                newtemp(s, count);
+                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                else printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                            }
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.str), (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].str));
+                            (yyval.val_type).str = strdup(s);
+                            printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type).str);
                         ;}
     break;
 
   case 5:
 
 /* Line 1464 of yacc.c  */
-#line 59 "3ac.y"
+#line 237 "3ac.y"
     {
+                            eval (&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type));
+                            if ( (is_int((yyvsp[(1) - (3)].val_type)) && is_real((yyvsp[(3) - (3)].val_type))) || is_real((yyvsp[(1) - (3)].val_type)) && is_int((yyvsp[(3) - (3)].val_type)) ) {
+                                newtemp(s, count);
+                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                else printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                            }
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.str), (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].str));
+                            (yyval.val_type).str = strdup(s);
+                            printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type).str);
                         ;}
     break;
 
   case 6:
 
 /* Line 1464 of yacc.c  */
-#line 65 "3ac.y"
+#line 249 "3ac.y"
     {
+                            eval (&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type));
+                            if ( (is_int((yyvsp[(1) - (3)].val_type)) && is_real((yyvsp[(3) - (3)].val_type))) || is_real((yyvsp[(1) - (3)].val_type)) && is_int((yyvsp[(3) - (3)].val_type)) ) {
+                                newtemp(s, count);
+                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                else printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                            }
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.str), (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].str));
+                            (yyval.val_type).str = strdup(s);
+                            printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type).str);
                         ;}
     break;
 
   case 7:
 
 /* Line 1464 of yacc.c  */
-#line 71 "3ac.y"
+#line 261 "3ac.y"
     {
+                            eval (&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type));
+                            if ( (is_int((yyvsp[(1) - (3)].val_type)) && is_real((yyvsp[(3) - (3)].val_type))) || is_real((yyvsp[(1) - (3)].val_type)) && is_int((yyvsp[(3) - (3)].val_type)) ) {
+                                newtemp(s, count);
+                                if (is_int((yyvsp[(1) - (3)].val_type))) printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(1) - (3)].val_type).str);
+                                else printf("%d\t%s := int_to_real %s\n", nextstat++, s, (yyvsp[(3) - (3)].val_type).str);
+                            }
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.str), (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].str));
+                            (yyval.val_type).str = strdup(s);
+                            printf("%d\t%s := %s %c %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].chr), (yyvsp[(3) - (3)].val_type).str);
                         ;}
     break;
 
   case 8:
 
 /* Line 1464 of yacc.c  */
-#line 77 "3ac.y"
+#line 273 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf ("%d\t%s := %c%s\n", nextstat++, (yyval.str), (yyvsp[(1) - (2)].chr), (yyvsp[(2) - (2)].str));
+                            (yyval.val_type).str = strdup(s);
+                            if (is_int((yyvsp[(2) - (2)].val_type)) || is_real((yyvsp[(2) - (2)].val_type)) || is_void((yyvsp[(2) - (2)].val_type))) {
+                                (yyval.val_type).type = strdup((yyvsp[(2) - (2)].val_type).type);
+                                if (is_int((yyvsp[(2) - (2)].val_type))) (yyval.val_type).intval = - (yyvsp[(2) - (2)].val_type).intval;
+                                if (is_real((yyvsp[(2) - (2)].val_type))) (yyval.val_type).realval = - (yyvsp[(2) - (2)].val_type).realval;
+                            }
+                            else {
+                                (yyval.val_type).type = strdup("type_error");
+                            }
+                            printf ("%d\t%s := %c%s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (2)].chr), (yyvsp[(2) - (2)].val_type).str);
                         ;}
     break;
 
   case 9:
 
 /* Line 1464 of yacc.c  */
-#line 83 "3ac.y"
+#line 287 "3ac.y"
     {
-                            (yyval.str) = strdup((yyvsp[(2) - (3)].str));
+                            (yyval.val_type).str = strdup((yyvsp[(2) - (3)].val_type).str);
+                            (yyval.val_type).type = strdup((yyvsp[(2) - (3)].val_type).type);
+                            (yyval.val_type).intval = (yyvsp[(2) - (3)].val_type).intval;
+                            (yyval.val_type).realval = (yyvsp[(2) - (3)].val_type).realval;
                         ;}
     break;
 
   case 10:
 
 /* Line 1464 of yacc.c  */
-#line 87 "3ac.y"
+#line 294 "3ac.y"
     {
-                            (yyval.str) = strdup((yyvsp[(1) - (1)].str));
+                            (yyval.val_type).str = strdup((yyvsp[(1) - (1)].str));
+                            (yyval.val_type).type = strdup("void");
                         ;}
     break;
 
   case 11:
 
 /* Line 1464 of yacc.c  */
-#line 91 "3ac.y"
+#line 299 "3ac.y"
     {
                             char p[256] = "";
-                            sprintf(p, "%d", (yyvsp[(1) - (1)].integer));
-                            (yyval.str) = strdup(p);
-                            temp1 = (yyvsp[(1) - (1)].integer);
+                            if (strcmp((yyvsp[(1) - (1)].val_type).type, "integer") == 0) {
+                                sprintf(p, "%d", (yyvsp[(1) - (1)].val_type).intval);
+                                (yyval.val_type).intval = (yyvsp[(1) - (1)].val_type).intval;
+                            }
+                            else if (strcmp((yyvsp[(1) - (1)].val_type).type, "real") == 0) {
+                                sprintf(p, "%f", (yyvsp[(1) - (1)].val_type).realval);
+                                (yyval.val_type).realval = (yyvsp[(1) - (1)].val_type).realval;
+                            }
+                            (yyval.val_type).str = strdup(p);
+                            (yyval.val_type).type = strdup((yyvsp[(1) - (1)].val_type).type);
                         ;}
     break;
 
   case 12:
 
 /* Line 1464 of yacc.c  */
-#line 98 "3ac.y"
+#line 313 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf ("%d\t%s := %s AND %s\n", nextstat++, (yyval.str), (yyvsp[(1) - (3)].str), (yyvsp[(3) - (3)].str));
+                            (yyval.val_type).str = strdup(s);
+                            bool_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf ("%d\t%s := %s AND %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(3) - (3)].val_type).str);
                         ;}
     break;
 
   case 13:
 
 /* Line 1464 of yacc.c  */
-#line 104 "3ac.y"
+#line 320 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf ("%d\t%s := %s OR %s\n", nextstat++, (yyval.str), (yyvsp[(1) - (3)].str), (yyvsp[(3) - (3)].str));
+                            (yyval.val_type).str = strdup(s);
+                            bool_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf ("%d\t%s := %s OR %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(3) - (3)].val_type).str);
                         ;}
     break;
 
   case 14:
 
 /* Line 1464 of yacc.c  */
-#line 110 "3ac.y"
+#line 327 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf ("%d\t%s := NOT %s\n", nextstat++, (yyval.str), (yyvsp[(2) - (2)].str));
+                            (yyval.val_type).str = strdup(s);
+                            if (is_boolean((yyvsp[(2) - (2)].val_type))) {
+                                (yyval.val_type).type = strdup("boolean");
+                                if (!(yyvsp[(2) - (2)].val_type).boolval) (yyval.val_type).boolval = 1;
+                                else if ((yyvsp[(2) - (2)].val_type).boolval) (yyval.val_type).boolval = 0;
+                            }
+                            else {
+                                (yyval.val_type).type = strdup("type_error");
+                            }
+                            printf ("%d\t%s := NOT %s\n", nextstat++, (yyval.val_type).str, (yyvsp[(2) - (2)].val_type).str);
                         ;}
     break;
 
   case 15:
 
 /* Line 1464 of yacc.c  */
-#line 116 "3ac.y"
+#line 341 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].str), nextstat + 3);
+                            (yyval.val_type).str = strdup(s);
+                            relop_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type).str, nextstat + 3);
                             nextstat++;
-                            printf("%d\t%s := 0\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
                             printf("%d\tgoto %d\n", nextstat, nextstat + 2);
                             nextstat++;
-                            printf("%d\t%s := 1\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
                         ;}
     break;
 
   case 16:
 
 /* Line 1464 of yacc.c  */
-#line 127 "3ac.y"
+#line 353 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].str), nextstat + 3);
+                            (yyval.val_type).str = strdup(s);
+                            relop_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type).str, nextstat + 3);
                             nextstat++;
-                            printf("%d\t%s := 0\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
                             printf("%d\tgoto %d\n", nextstat, nextstat + 2);
                             nextstat++;
-                            printf("%d\t%s := 1\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
                         ;}
     break;
 
   case 17:
 
 /* Line 1464 of yacc.c  */
-#line 138 "3ac.y"
+#line 365 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].str), nextstat + 3);
+                            (yyval.val_type).str = strdup(s);
+                            relop_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type).str, nextstat + 3);
                             nextstat++;
-                            printf("%d\t%s := 0\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
                             printf("%d\tgoto %d\n", nextstat, nextstat + 2);
                             nextstat++;
-                            printf("%d\t%s := 1\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
                         ;}
     break;
 
   case 18:
 
 /* Line 1464 of yacc.c  */
-#line 149 "3ac.y"
+#line 377 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].str), nextstat + 3);
+                            (yyval.val_type).str = strdup(s);
+                            relop_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type).str, nextstat + 3);
                             nextstat++;
-                            printf("%d\t%s := 0\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
                             printf("%d\tgoto %d\n", nextstat, nextstat + 2);
                             nextstat++;
-                            printf("%d\t%s := 1\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
                         ;}
     break;
 
   case 19:
 
 /* Line 1464 of yacc.c  */
-#line 160 "3ac.y"
+#line 389 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].str), nextstat + 3);
+                            (yyval.val_type).str = strdup(s);
+                            relop_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type).str, nextstat + 3);
                             nextstat++;
-                            printf("%d\t%s := 0\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
                             printf("%d\tgoto %d\n", nextstat, nextstat + 2);
                             nextstat++;
-                            printf("%d\t%s := 1\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
                         ;}
     break;
 
   case 20:
 
 /* Line 1464 of yacc.c  */
-#line 171 "3ac.y"
+#line 401 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].str), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].str), nextstat + 3);
+                            (yyval.val_type).str = strdup(s);
+                            relop_eval(&(yyval.val_type), (yyvsp[(1) - (3)].val_type), (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type));
+                            printf("%d\tif %s %s %s goto %d\n", nextstat, (yyvsp[(1) - (3)].val_type).str, (yyvsp[(2) - (3)].str), (yyvsp[(3) - (3)].val_type).str, nextstat + 3);
                             nextstat++;
-                            printf("%d\t%s := 0\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
                             printf("%d\tgoto %d\n", nextstat, nextstat + 2);
                             nextstat++;
-                            printf("%d\t%s := 1\n", nextstat++, (yyval.str));
+                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
                         ;}
     break;
 
   case 21:
 
 /* Line 1464 of yacc.c  */
-#line 182 "3ac.y"
+#line 413 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\t%s := 1\n", nextstat++, (yyval.str));
+                            (yyval.val_type).str = strdup(s);
+                            (yyval.val_type).type = strdup("boolean");
+                            (yyval.val_type).boolval = 1;
+                            printf("%d\t%s := 1\n", nextstat++, (yyval.val_type).str);
                         ;}
     break;
 
   case 22:
 
 /* Line 1464 of yacc.c  */
-#line 188 "3ac.y"
+#line 421 "3ac.y"
     {
                             newtemp(s, count);
-                            (yyval.str) = strdup(s);
-                            printf("%d\t%s := 0\n", nextstat++, (yyval.str));
+                            (yyval.val_type).str = strdup(s);
+                            (yyval.val_type).type = strdup("boolean");
+                            (yyval.val_type).boolval = 0;
+                            printf("%d\t%s := 0\n", nextstat++, (yyval.val_type).str);
                         ;}
     break;
 
 
 
 /* Line 1464 of yacc.c  */
-#line 1676 "3ac.tab.c"
+#line 1911 "3ac.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1884,7 +2119,7 @@ yyreturn:
 
 
 /* Line 1684 of yacc.c  */
-#line 194 "3ac.y"
+#line 429 "3ac.y"
 
 
 main() {
@@ -1894,3 +2129,5 @@ main() {
 yyerror (char *s) {
     fprintf(stderr, "%s\n", s);
 }
+
+

@@ -7,7 +7,14 @@
 %%
 
 0|[1-9][0-9]*           {
-                            yylval.integer = atoi(yytext);
+                            yylval.val_type.intval = atoi(yytext);
+                            yylval.val_type.type = strdup("integer");
+                            return VAL;
+                        }
+
+(0|[1-9][0-9]*)\.[0-9]+ {
+                            yylval.val_type.realval = atof(yytext);
+                            yylval.val_type.type = strdup("real");
                             return VAL;
                         }
 
@@ -31,14 +38,14 @@
                             return GREATER;
                         }
 
-"<"                     {
-                            yylval.str = strdup(yytext);
-                            return LESSER;
-                        }
-
 ">="                    {
                             yylval.str = strdup(yytext);
                             return GREATEQ;
+                        }
+
+"<"                     {
+                            yylval.str = strdup(yytext);
+                            return LESSER;
                         }
 
 "<="                    {
