@@ -146,7 +146,9 @@
         }
         return;
     }
-
+    void prettyprint (struct val_type e) {
+        printf("\nstr: %s\ntype: %s\nintval: %d\nboolval:%d\nrealval: %f\n\n", e.str, e.type, e.intval, e.boolval, e.realval);
+    }
 %}
 
 %union {
@@ -231,6 +233,9 @@ e : e PLUS e            {
                             }
                             newtemp(s, count);
                             $$.str = strdup(s);
+                            prettyprint($$);
+                            prettyprint($1);
+                            prettyprint($3);
                             printf("%d\t%s := %s %c %s\n", nextstat++, $$.str, $1.str, $2, $3.str);
                         };
 
